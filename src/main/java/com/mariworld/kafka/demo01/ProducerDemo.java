@@ -1,4 +1,4 @@
-package com.mariworld.kafka;
+package com.mariworld.kafka.demo01;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
