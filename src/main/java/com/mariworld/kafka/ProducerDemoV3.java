@@ -38,8 +38,6 @@ public class ProducerDemoV3 {
             logger.warn("record --> {}", record);
         }
 
-
-
         producer.flush();
         producer.close();
     }
