@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
 
-public class ProducerDemoV2 {
+public class ProducerDemoV3 {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProducerDemoV2.class);
+    private static final Logger logger = LoggerFactory.getLogger(ProducerDemoV3.class);
     public static void main(String[] args) {
         Properties properties = new Properties();
         properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,"127.0.0.1:9092");
@@ -19,13 +19,16 @@ public class ProducerDemoV2 {
         KafkaProducer<String,String> producer = new KafkaProducer<String, String>(properties);
 
         for (int i = 0; i < 10; i++) {
-            ProducerRecord<String,String> record = new ProducerRecord<>("first_topic","hello world [ " + i + " ]");
 
+            String topic ="first_topic";
+            String key ="id [" + i + "]";
+            String value ="hello world [" + i + "]";
+            ProducerRecord<String,String> record = new ProducerRecord<>(topic,key,value);
             producer.send(record, new Callback() {
                 @Override
                 public void onCompletion(RecordMetadata recordMetadata, Exception e) {
                     logger.info("recordMetadata --> {}", recordMetadata);
-                    logger.info(" {} \n {} \n {} \n {}",
+                    logger.info("topic :  {} \n partition : {} \n offset : {} \n timestamp : {}",
                             recordMetadata.topic(),
                             recordMetadata.partition(),
                             recordMetadata.offset(),
@@ -33,7 +36,6 @@ public class ProducerDemoV2 {
                 }
             });
             logger.warn("record --> {}", record);
-            logger.error("record --> {}", record);
         }
 
 
