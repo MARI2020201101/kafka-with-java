@@ -57,6 +57,7 @@ public class ElasticSearchConsumerV4 {
 
             try{
                 client.bulk(bulkRequest, RequestOptions.DEFAULT);
+                logger.info("bulkRequest done!");
             }catch(Exception e){
                 logger.error(e.getMessage());
             }
