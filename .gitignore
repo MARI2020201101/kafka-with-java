@@ -1,3 +1,4 @@
 kafka-with-twitter/**/TwitterAuth.java
 src/**/TwitterAuth.java
+target/**
 
