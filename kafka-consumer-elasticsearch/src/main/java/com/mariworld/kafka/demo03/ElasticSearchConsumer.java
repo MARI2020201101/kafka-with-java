@@ -1,6 +1,6 @@
 package com.mariworld.kafka.demo03;
 
-import com.fasterxml.jackson.core.JsonParser;
+
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -12,21 +12,22 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.xcontent.XContentType;
+import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.mapper.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.Properties;
+
 
 public class ElasticSearchConsumer {
     private static final Logger logger = LoggerFactory.getLogger(ElasticSearchConsumer.class);
@@ -36,7 +37,6 @@ public class ElasticSearchConsumer {
         String username = BonsaiAuth.USERNAME.getValue();
         String password = BonsaiAuth.PASSWORD.getValue();
 
-        // credentials provider help supply username and password
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(AuthScope.ANY,
                 new UsernamePasswordCredentials(username, password));
@@ -58,6 +58,15 @@ public class ElasticSearchConsumer {
     public static void main(String[] args) throws IOException {
         RestHighLevelClient client = createClient();
 
+        String jsonString = "{\"foo\":\"bar\"}";
+        IndexRequest indexRequest = new IndexRequest(
+                "twitter",
+                "tweets"
+        ).source(jsonString, XContentType.JSON);
+
+        IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
+        String id = indexResponse.getId();
+        logger.info(id);
 
         client.close();
 
