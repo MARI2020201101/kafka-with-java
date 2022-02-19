@@ -1,6 +1,7 @@
 package com.mariworld.kafka.demo03;
 
 
+import com.google.gson.JsonParser;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -11,7 +12,6 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
@@ -25,13 +25,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Properties;
 
 
-public class ElasticSearchConsumerV2 {
-    private static final Logger logger = LoggerFactory.getLogger(ElasticSearchConsumerV2.class);
+public class ElasticSearchConsumerV3 {
+    private static final Logger logger = LoggerFactory.getLogger(ElasticSearchConsumerV3.class);
 
     public static void main(String[] args) throws IOException, InterruptedException {
         KafkaConsumer<String, String> consumer = createKafkaConsumer("twitter_topic");
@@ -41,20 +40,33 @@ public class ElasticSearchConsumerV2 {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
 
             for (ConsumerRecord<String, String> record : records) {
-                logger.warn("key : {} \npartition : {}\noffset : {}\nvalue : {}" , record.key(),record.partition(),record.offset(),record.value());
+
+                String id = extractIdFromTweets(record.value());
 
                 IndexRequest indexRequest = new IndexRequest(
                         "twitter",
-                        "tweets"
+                        "tweets",
+                        id
                 ).source(record.value(), XContentType.JSON);
-                IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
-                String id = indexResponse.getId();
+                try{
+                    client.index(indexRequest, RequestOptions.DEFAULT);
+                }catch(Exception e){
+                    logger.error(e.getMessage());
+                }
                 logger.info(id);
                 Thread.sleep(1000);
             }
         }
 //        client.close();
 
+    }
+
+    private static JsonParser jsonParser = new JsonParser();
+    private static String extractIdFromTweets(String tweetJson) {
+        return jsonParser.parse(tweetJson)
+                .getAsJsonObject()
+                .get("id_str")
+                .getAsString();
     }
 
     public static RestHighLevelClient createClient(){
