@@ -13,8 +13,9 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
@@ -29,8 +30,8 @@ import java.util.Collections;
 import java.util.Properties;
 
 
-public class ElasticSearchConsumerV3 {
-    private static final Logger logger = LoggerFactory.getLogger(ElasticSearchConsumerV3.class);
+public class ElasticSearchConsumerV4 {
+    private static final Logger logger = LoggerFactory.getLogger(ElasticSearchConsumerV4.class);
 
     public static void main(String[] args) throws IOException, InterruptedException {
         KafkaConsumer<String, String> consumer = createKafkaConsumer("twitter_topic");
@@ -39,25 +40,28 @@ public class ElasticSearchConsumerV3 {
         while(true){
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
 
-            logger.info("polled records count --> {}", records.count());
+            Integer recordCount =  records.count();
+            logger.info("polled records count --> {}", recordCount);
+            BulkRequest bulkRequest = new BulkRequest();
+
             for (ConsumerRecord<String, String> record : records) {
-
                 String id = extractIdFromTweets(record.value());
-
                 IndexRequest indexRequest = new IndexRequest(
                         "twitter",
                         "tweets",
                         id
                 ).source(record.value(), XContentType.JSON);
-                try{
-                    client.index(indexRequest, RequestOptions.DEFAULT);
-                }catch(Exception e){
-                    logger.error(e.getMessage());
-                }
+                bulkRequest.add(indexRequest);
                 logger.info(id);
-                consumer.commitSync();
-                Thread.sleep(1000);
             }
+
+            try{
+                client.bulk(bulkRequest, RequestOptions.DEFAULT);
+            }catch(Exception e){
+                logger.error(e.getMessage());
+            }
+            consumer.commitSync();
+            Thread.sleep(1000);
         }
 //        client.close();
 
