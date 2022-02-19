@@ -11,6 +11,7 @@
     <modules>
         <module>kafka-basic</module>
         <module>kafka-with-twitter</module>
+        <module>kafka-consumer-elasticsearch</module>
     </modules>
 
     <properties>
