@@ -1,5 +1,6 @@
 kafka-with-twitter/**/TwitterAuth.java
 src/**/TwitterAuth.java
+kafka-consumer-elasticsearch/**/BonsaiAuth.java
 kafka-basic/**/TwitterAuth.java
 target/**
 .idea
